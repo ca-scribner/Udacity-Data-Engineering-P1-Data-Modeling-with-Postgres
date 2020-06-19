@@ -8,17 +8,25 @@ time_table_drop = "DROP TABLE IF EXISTS time"
 
 # CREATE TABLES
 
+# If using a full dataset with all songs/artists present, we could consider
+# setting song_id and artist_id NOT NULL.  But with current sample data, 
+# our songplay table has many songs/artists that our other tables don't have
+# so there will be nulls here
 songplay_table_create = ("""
 CREATE TABLE songplays (
     songplay_id SERIAL PRIMARY KEY,
-    start_time TIMESTAMP,
-    user_id INT,
+    start_time TIMESTAMP NOT NULL,
+    user_id INT NOT NULL,
     level VARCHAR,
     song_id VARCHAR,
     artist_id VARCHAR,
     session_id INT,
     location VARCHAR,
-    user_agent VARCHAR
+    user_agent VARCHAR,
+    FOREIGN KEY (start_time) REFERENCES time (start_time),
+    FOREIGN KEY (user_id) REFERENCES users (user_id),
+    FOREIGN KEY (song_id) REFERENCES songs (song_id),
+    FOREIGN KEY (artist_id) REFERENCES artists (artist_id)
 )
 """)
 
@@ -36,9 +44,10 @@ song_table_create = ("""
 CREATE TABLE songs (
     song_id VARCHAR PRIMARY KEY,
     title VARCHAR,
-    artist_id VARCHAR,
+    artist_id VARCHAR NOT NULL,
     year INT,
-    duration FLOAT
+    duration FLOAT,
+    FOREIGN KEY (artist_id) REFERENCES artists (artist_id)
 )
 """)
 
@@ -77,10 +86,6 @@ INSERT INTO users (user_id, first_name, last_name, gender, level)
 VALUES (%s, %s, %s, %s, %s)
 ON CONFLICT (user_id)
 DO UPDATE SET 
-    user_id=EXCLUDED.user_id,
-    first_name=EXCLUDED.first_name,
-    last_name=EXCLUDED.last_name,
-    gender=EXCLUDED.gender,
     level=EXCLUDED.level
 """)
 
@@ -89,12 +94,7 @@ song_table_insert = ("""
 INSERT INTO songs (song_id, title, artist_id, year, duration)
 VALUES (%s, %s, %s, %s, %s)
 ON CONFLICT (song_id)
-DO UPDATE SET
-    song_id=EXCLUDED.song_id,
-    title=EXCLUDED.title,
-    artist_id=EXCLUDED.artist_id,
-    year=EXCLUDED.year,
-    duration=EXCLUDED.duration
+DO NOTHING
 """)
 
 # On conflict, update the artist's info and assume the newest is correct
@@ -102,12 +102,7 @@ artist_table_insert = ("""
 INSERT INTO artists (artist_id, name, location, latitude, longtitude)
 VALUES (%s, %s, %s, %s, %s)
 ON CONFLICT (artist_id)
-DO UPDATE SET
-    artist_id=EXCLUDED.artist_id,
-    name=EXCLUDED.name,
-    location=EXCLUDED.location,
-    latitude=EXCLUDED.latitude,
-    longtitude=EXCLUDED.longtitude
+DO NOTHING
 """)
 
 # On conflict, ignore collision because timestamps should not be mutable
@@ -131,5 +126,5 @@ AND   songs.duration=%s
 
 # QUERY LISTS
 
-create_table_queries = [songplay_table_create, user_table_create, song_table_create, artist_table_create, time_table_create]
+create_table_queries = [user_table_create, artist_table_create, time_table_create, song_table_create, songplay_table_create]
 drop_table_queries = [songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
