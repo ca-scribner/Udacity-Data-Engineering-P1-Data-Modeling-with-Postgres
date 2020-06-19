@@ -1,4 +1,5 @@
-# Project: Data Modeling with Postgres
+# Udacity Data Engineering Nanodegree
+# Project 1: Data Modeling with Postgres
 
 This project is a mockup for a fictional music streaming service, Sparkify, which wants to analyze the data they've collected on user activity.  In particular, they are interested in understanding what songs users are listening to and need a way to easily query their JSON logs and song data.  In particular, their focus is on optimizing the database for querying for song play analysis.
 
